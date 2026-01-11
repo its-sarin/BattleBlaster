@@ -35,7 +35,14 @@ void ATank::BeginPlay()
 void ATank::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	if (PlayerController)
+	{
+		FHitResult HitResult;
+		PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+		FVector HitLocation = HitResult.ImpactPoint;
+		RotateTurret(HitLocation);
+	}
 }
 
 // Called to bind functionality to input
@@ -57,8 +64,6 @@ void ATank::MoveInput(const FInputActionValue& Value)
 	FVector DeltaLocation = FVector::ZeroVector;
 	DeltaLocation.X = MoveValue * Speed * GetWorld()->GetDeltaSeconds();
 	AddActorLocalOffset(DeltaLocation, true);
-
-	UE_LOG(LogTemp, Warning, TEXT("Move Input Value: %f"), MoveValue);
 }
 
 void ATank::TurnInput(const FInputActionValue& Value)
