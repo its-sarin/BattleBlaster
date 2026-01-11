@@ -3,6 +3,10 @@
 
 #include "Tank.h"
 
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
+#include "InputMappingContext.h"
+
 ATank::ATank()
 {
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
@@ -38,5 +42,16 @@ void ATank::Tick(float DeltaTime)
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATank::MoveInput);
+	}
+}
 
+void ATank::MoveInput(const FInputActionValue& Value)
+{
+	float MoveValue = Value.Get<float>();
+
+	UE_LOG(LogTemp, Warning, TEXT("Move Input Value: %f"), MoveValue);
 }

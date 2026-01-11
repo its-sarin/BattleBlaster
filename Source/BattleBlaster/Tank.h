@@ -5,13 +5,18 @@
 #include "CoreMinimal.h"
 #include "BasePawn.h"
 
-#include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
-
-#include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 
+#include "InputAction.h"
+#include "InputActionValue.h"
+#include "EnhancedInputComponent.h"
+
 #include "Tank.generated.h"
+
+class USpringArmComponent;
+class UCameraComponent;
+class UInputMappingContext;
+
 
 /**
  * 
@@ -38,9 +43,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* DefaultMappingContext;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* MoveAction;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraComp;
+
+	void MoveInput(const FInputActionValue& Value);
 };
