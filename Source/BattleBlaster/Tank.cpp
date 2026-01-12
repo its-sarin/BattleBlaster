@@ -35,6 +35,7 @@ void ATank::BeginPlay()
 void ATank::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 	APlayerController* PlayerController = Cast<APlayerController>(Controller);
 	if (PlayerController)
 	{
@@ -54,6 +55,8 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATank::MoveInput);
 		EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ATank::TurnInput);
+		/*EnhancedInputComponent->BindAction(RotateAction, ETriggerEvent::Triggered, this, &ATank::RotateInput);*/
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATank::Fire);
 	}
 }
 
@@ -74,3 +77,12 @@ void ATank::TurnInput(const FInputActionValue& Value)
 	DeltaRotation.Yaw = TurnValue * TurnRate * GetWorld()->GetDeltaSeconds();
 	AddActorLocalRotation(DeltaRotation, true);
 }
+
+//void ATank::RotateInput(const FInputActionValue& Value)
+//{
+//	FVector2D LookAxisValue = Value.Get<FVector2D>();
+//	UE_LOG(LogTemp, Warning, TEXT("Rotate Input: X=%f, Y=%f"), LookAxisValue.X, LookAxisValue.Y);
+//
+//	FVector LookAtTarget = GetActorLocation() + FVector(LookAxisValue.X, LookAxisValue.Y, 0.f) * 1000.f;
+//	RotateTurret(LookAtTarget);
+//}

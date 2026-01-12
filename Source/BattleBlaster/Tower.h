@@ -28,8 +28,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float FireRange = 1000.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	float FireRate = 2.f;
+
 	ATank* Tank;
 
 private:
+	bool IsInFireRange();
 	void TrackTank();
+	void CheckFireCondition();
 };
