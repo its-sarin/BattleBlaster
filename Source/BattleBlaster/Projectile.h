@@ -33,6 +33,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Lifespan")
 	float LifeSpan = 3.f;
 
+	// damage value
+	UPROPERTY(EditAnywhere, Category = "Damage")
+	float Damage = 25.f;
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };
