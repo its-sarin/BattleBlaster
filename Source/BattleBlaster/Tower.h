@@ -33,6 +33,8 @@ public:
 
 	ATank* Tank;
 
+	void HandleDestruction();
+
 private:
 	bool IsInFireRange();
 	void TrackTank();

@@ -52,9 +52,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* FireAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	UInputAction* RotateAction;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
 
@@ -67,7 +64,39 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float TurnRate = 45.f;
 
+	/** Pointer to the player controller assigned to this character */
+	TObjectPtr<APlayerController> PlayerController;
+
+	bool bIsAlive = true;
+
 	void MoveInput(const FInputActionValue& Value);
 	void TurnInput(const FInputActionValue& Value);
-	/*void RotateInput(const FInputActionValue& Value);*/
+
+	/** Handles joypad aim */
+	void StickAim(const FInputActionValue& Value);
+
+	/** Handles mouse aim */
+	void MouseAim(const FInputActionValue& Value);
+
+	/** Handles aim inputs from both input actions and touch interface */
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void DoAim(float AxisX, float AxisY);
+
+	void HandleDestruction();
+	void SetPlayerEnabled(bool bEnabled);
+
+protected:
+	/** Aim Yaw Angle in degrees */
+	float AimAngle = 0.0f;
+
+	/** If true, the player is using mouse aim */
+	bool bUsingMouse = false;
+
+	/** Gamepad aim input action */
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* StickAimAction;
+
+	/** Mouse aim input action */
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* MouseAimAction;
 };

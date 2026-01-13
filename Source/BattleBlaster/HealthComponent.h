@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "BattleBlasterGameMode.h"
 #include "HealthComponent.generated.h"
 
 
@@ -28,5 +29,9 @@ public:
 	float MaxHealth = 100.0f;
 	UPROPERTY(VisibleAnywhere, Category = "Health")
 	float CurrentHealth;
+
+	ABattleBlasterGameMode* BattleBlasterGameMode;
 		
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void OnDamageTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 };

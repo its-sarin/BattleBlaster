@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "InputMappingContext.h"
+#include <Kismet/KismetMathLibrary.h>
 
 ATank::ATank()
 {
@@ -21,7 +22,7 @@ void ATank::BeginPlay()
 {
 	Super::BeginPlay();
 
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	PlayerController = Cast<APlayerController>(Controller);
 	if (PlayerController)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -36,13 +37,36 @@ void ATank::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-	if (PlayerController)
+	// get the current rotation
+	const FRotator OldRotation = TurretMesh->GetComponentRotation();
+
+	// are we aiming with the mouse?
+	if (bUsingMouse)
 	{
-		FHitResult HitResult;
-		PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
-		FVector HitLocation = HitResult.ImpactPoint;
-		RotateTurret(HitLocation);
+		if (PlayerController)
+		{
+			// get the cursor world location
+			FHitResult OutHit;
+			PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, true, OutHit);
+
+			// find the aim rotation 
+			const FRotator AimRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OutHit.Location);
+
+			// save the aim angle
+			AimAngle = AimRot.Yaw;
+
+			// update the yaw, reuse the pitch and roll
+			SetTurretRotation(FRotator(OldRotation.Pitch, AimAngle, OldRotation.Roll));
+
+		}
+	}
+	else
+	{
+		// use quaternion interpolation to blend between our current rotation
+		// and the desired aim rotation using the shortest path
+		const FRotator TargetRot = FRotator(OldRotation.Pitch, AimAngle, OldRotation.Roll);
+
+		SetTurretRotation(TargetRot);
 	}
 }
 
@@ -55,8 +79,9 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATank::MoveInput);
 		EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ATank::TurnInput);
-		/*EnhancedInputComponent->BindAction(RotateAction, ETriggerEvent::Triggered, this, &ATank::RotateInput);*/
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATank::Fire);
+		EnhancedInputComponent->BindAction(StickAimAction, ETriggerEvent::Triggered, this, &ATank::StickAim);
+		EnhancedInputComponent->BindAction(MouseAimAction, ETriggerEvent::Triggered, this, &ATank::MouseAim);
 	}
 }
 
@@ -78,11 +103,67 @@ void ATank::TurnInput(const FInputActionValue& Value)
 	AddActorLocalRotation(DeltaRotation, true);
 }
 
-//void ATank::RotateInput(const FInputActionValue& Value)
-//{
-//	FVector2D LookAxisValue = Value.Get<FVector2D>();
-//	UE_LOG(LogTemp, Warning, TEXT("Rotate Input: X=%f, Y=%f"), LookAxisValue.X, LookAxisValue.Y);
-//
-//	FVector LookAtTarget = GetActorLocation() + FVector(LookAxisValue.X, LookAxisValue.Y, 0.f) * 1000.f;
-//	RotateTurret(LookAtTarget);
-//}
+void ATank::StickAim(const FInputActionValue& Value)
+{
+	// get the input vector
+	FVector2D InputVector = Value.Get<FVector2D>();
+
+	// route the input
+	DoAim(InputVector.X, InputVector.Y);
+}
+
+void ATank::MouseAim(const FInputActionValue & Value)
+{
+	// raise the mouse controls flag
+	bUsingMouse = true;
+
+	// show the mouse cursor
+	if (PlayerController)
+	{
+		PlayerController->SetShowMouseCursor(true);
+	}
+}
+
+void ATank::DoAim(float AxisX, float AxisY)
+{
+	// calculate the aim angle from the inputs
+	AimAngle = FMath::RadiansToDegrees(FMath::Atan2(AxisY, -AxisX));
+
+	// Adjust the aim angle relative to the tank's facing direction (this way, up on the stick is always forward for the tank)
+	AimAngle += GetActorRotation().Yaw;
+
+	// lower the mouse controls flag
+	bUsingMouse = false;
+
+	// hide the mouse cursor
+	if (PlayerController)
+	{
+		PlayerController->SetShowMouseCursor(false);
+	}
+}
+
+void ATank::HandleDestruction()
+{
+	Super::HandleDestruction();
+
+	bIsAlive = false;
+	SetPlayerEnabled(false);
+	SetActorHiddenInGame(true);
+	SetActorTickEnabled(false);
+}
+
+void ATank::SetPlayerEnabled(bool bEnabled)
+{
+	if (PlayerController)
+	{
+		if (bEnabled)
+		{	
+			EnableInput(PlayerController);			
+		}
+		else
+		{
+			DisableInput(PlayerController);			
+		}
+		PlayerController->bShowMouseCursor = bEnabled;
+	}
+}

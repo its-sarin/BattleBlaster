@@ -30,7 +30,7 @@ bool ATower::IsInFireRange()
 
 void ATower::TrackTank()
 {
-	if (IsInFireRange())
+	if (IsInFireRange() && Tank->bIsAlive)
 	{
 		RotateTurret(Tank->GetActorLocation());
 	}
@@ -38,8 +38,15 @@ void ATower::TrackTank()
 
 void ATower::CheckFireCondition()
 {
-	if (IsInFireRange())
+	if (IsInFireRange() && Tank->bIsAlive)
 	{
 		Fire();
 	}
+}
+
+void ATower::HandleDestruction()
+{
+	Super::HandleDestruction();
+
+	Destroy();
 }

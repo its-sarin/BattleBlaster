@@ -33,7 +33,14 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AProjectile> ProjectileClass;
 
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+	bool bUseSmoothTurretRotation = false;
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+	float SmoothTurretRotationSpeed = 5.f;
+
 	void RotateTurret(FVector LookAtTarget);
+	void SetTurretRotation(FRotator TargetRotation);
 
 	void Fire();
+	void HandleDestruction();
 };

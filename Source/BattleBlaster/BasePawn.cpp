@@ -26,9 +26,25 @@ void ABasePawn::RotateTurret(FVector LookAtTarget)
 {
 	FVector ToTarget = LookAtTarget - TurretMesh->GetComponentLocation();
 	FRotator LookAtRotation = FRotator(0.f, ToTarget.Rotation().Yaw, 0.f);
-	FRotator SmoothedRotation = FMath::RInterpTo(TurretMesh->GetComponentRotation(), LookAtRotation, GetWorld()->GetDeltaSeconds(), 10.f);
 
-	TurretMesh->SetWorldRotation(SmoothedRotation);
+	SetTurretRotation(LookAtRotation);
+}
+
+void ABasePawn::SetTurretRotation(FRotator TargetRotation)
+{
+	if (bUseSmoothTurretRotation)
+	{
+		FRotator SmoothedRotation = FMath::RInterpTo(
+			TurretMesh->GetComponentRotation(),
+			TargetRotation,
+			GetWorld()->GetDeltaSeconds(),
+			SmoothTurretRotationSpeed
+		);
+		TurretMesh->SetWorldRotation(SmoothedRotation);
+		return;
+	}
+
+	TurretMesh->SetWorldRotation(TargetRotation);
 }
 
 void ABasePawn::Fire()
@@ -46,5 +62,10 @@ void ABasePawn::Fire()
 			UE_LOG(LogTemp, Warning, TEXT("Projectile fired by: %s"), *ProjectileOwner->GetName());
 		}
 	}
+}
+
+void ABasePawn::HandleDestruction()
+{
+	UE_LOG(LogTemp, Warning, TEXT("BasePawn %s: HandleDestruction"), *GetName());
 }
 
