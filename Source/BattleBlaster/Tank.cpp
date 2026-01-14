@@ -30,6 +30,8 @@ void ATank::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	SetPlayerEnabled(false);
 }
 
 // Called every frame
@@ -65,6 +67,7 @@ void ATank::Tick(float DeltaTime)
 		// use quaternion interpolation to blend between our current rotation
 		// and the desired aim rotation using the shortest path
 		const FRotator TargetRot = FRotator(OldRotation.Pitch, AimAngle, OldRotation.Roll);
+		DrawDebugSphere(GetWorld(), TargetRot.Vector() * 500.f + GetActorLocation(), 25.f, 12, FColor::Red, false, -1.f, 0, 2.f);
 
 		SetTurretRotation(TargetRot);
 	}
@@ -91,6 +94,7 @@ void ATank::MoveInput(const FInputActionValue& Value)
 
 	FVector DeltaLocation = FVector::ZeroVector;
 	DeltaLocation.X = MoveValue * Speed * GetWorld()->GetDeltaSeconds();
+
 	AddActorLocalOffset(DeltaLocation, true);
 }
 
@@ -105,6 +109,15 @@ void ATank::TurnInput(const FInputActionValue& Value)
 
 void ATank::StickAim(const FInputActionValue& Value)
 {
+	// lower the mouse controls flag
+	bUsingMouse = false;
+
+	// hide the mouse cursor
+	if (PlayerController)
+	{
+		PlayerController->SetShowMouseCursor(false);
+	}
+
 	// get the input vector
 	FVector2D InputVector = Value.Get<FVector2D>();
 
@@ -131,15 +144,6 @@ void ATank::DoAim(float AxisX, float AxisY)
 
 	// Adjust the aim angle relative to the tank's facing direction (this way, up on the stick is always forward for the tank)
 	AimAngle += GetActorRotation().Yaw;
-
-	// lower the mouse controls flag
-	bUsingMouse = false;
-
-	// hide the mouse cursor
-	if (PlayerController)
-	{
-		PlayerController->SetShowMouseCursor(false);
-	}
 }
 
 void ATank::HandleDestruction()
@@ -164,6 +168,6 @@ void ATank::SetPlayerEnabled(bool bEnabled)
 		{
 			DisableInput(PlayerController);			
 		}
-		PlayerController->bShowMouseCursor = bEnabled;
+		PlayerController->SetShowMouseCursor(bEnabled);
 	}
 }

@@ -4,13 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "BasePawn.h"
-
 #include "EnhancedInputSubsystems.h"
-
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "EnhancedInputComponent.h"
-
 #include "Tank.generated.h"
 
 class USpringArmComponent;

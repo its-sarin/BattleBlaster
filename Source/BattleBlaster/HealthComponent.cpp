@@ -29,6 +29,12 @@ void UHealthComponent::BeginPlay()
 	{
 		BattleBlasterGameMode = Cast<ABattleBlasterGameMode>(GameMode);
 	}
+
+	if (ATank* Tank = Cast<ATank>(GetOwner()))
+	{
+		PlayerHUDWidget = BattleBlasterGameMode->PlayerHUDWidget;
+		PlayerHUDWidget->SetTargetHealthComponent(this);
+	}
 }
 
 
@@ -47,6 +53,15 @@ void UHealthComponent::OnDamageTaken(AActor* DamagedActor, float Damage, const U
 		return;
 	}
 	CurrentHealth -= Damage;
+
+	// If DamagedActor is The Player, update HUD
+	/*ATank* Tank = Cast<ATank>(DamagedActor);*/
+	if (PlayerHUDWidget)
+	{
+		OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+		UE_LOG(LogTemp, Warning, TEXT("Updating Player HUD Health Bar: %f / %f"), CurrentHealth, MaxHealth);
+	}
+
 	if (CurrentHealth <= 0.f)
 	{
 		CurrentHealth = 0.f;

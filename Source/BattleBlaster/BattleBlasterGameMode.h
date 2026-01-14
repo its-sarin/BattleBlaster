@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 
 #include "Tank.h"
+#include "ScreenMessage.h"
+#include "PlayerHUD.h"
 
 #include "BattleBlasterGameMode.generated.h"
 
@@ -22,6 +24,22 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UScreenMessage> ScreenMessageClass;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UPlayerHUD> PlayerHUDClass;
+
+	UScreenMessage* ScreenMessageWidget;
+	UPlayerHUD* PlayerHUDWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Game Start")
+	int32 GameStartCountdown = 3;
+
+	int32 GameStartCountdownSeconds;
+
+	FTimerHandle GameStartTimerHandle;
+
 	UPROPERTY(EditAnywhere, Category="Game Over")
 	float GameOverDelay = 3.f;
 
@@ -33,4 +51,5 @@ public:
 
 	void ActorDied(AActor* DeadActor);
 	void OnGameOverTimerTimeout();
+	void OnCountdownTimerTimeout();
 };

@@ -15,6 +15,9 @@ AProjectile::AProjectile()
 
 	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
 
+	TrailEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Trail Effect"));
+	TrailEffect->SetupAttachment(RootComponent);
+
 	InitialLifeSpan = LifeSpan;
 }
 
@@ -24,6 +27,16 @@ void AProjectile::BeginPlay()
 	Super::BeginPlay();
 	
 	ProjectileMesh->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
+	if (LaunchSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			LaunchSound,
+			GetActorLocation(),
+			1.f,
+			0.5f
+		);
+	}
 }
 
 // Called every frame
@@ -46,6 +59,33 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 					this,
 					UDamageType::StaticClass()
 				);
+
+				if (ImpactEffect)
+				{
+					UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+						GetWorld(),
+						ImpactEffect,
+						GetActorLocation(),
+						GetActorRotation()
+					);
+				}
+				if (HitSound)
+				{
+					UGameplayStatics::PlaySoundAtLocation(
+						GetWorld(),
+						HitSound,
+						GetActorLocation(),
+						1.f,
+						3.f
+					);
+				}
+				if (HitCameraShakeClass)
+				{
+					if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
+					{
+						PlayerController->ClientStartCameraShake(HitCameraShakeClass);
+					}
+				}
 			}
 		}
 		Destroy();
