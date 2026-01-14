@@ -31,6 +31,8 @@ void ATank::BeginPlay()
 		}
 	}
 
+	CurrentAmmo = MaxAmmo;
+
 	SetPlayerEnabled(false);
 }
 
@@ -38,6 +40,14 @@ void ATank::BeginPlay()
 void ATank::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (ReloadTimerHandle.IsValid())
+	{
+		float ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ReloadTimerHandle);
+		float ReloadProgress = (ElapsedTime / ReloadTime) * 100.f;
+		UE_LOG(LogTemp, Warning, TEXT("Reloading... %.2f%%"), ReloadProgress);
+		// Optionally, you can update a reload progress bar here using ElapsedTime and ReloadTime
+	}
 
 	// get the current rotation
 	const FRotator OldRotation = TurretMesh->GetComponentRotation();
@@ -82,7 +92,7 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATank::MoveInput);
 		EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ATank::TurnInput);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATank::Fire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATank::DoFire);
 		EnhancedInputComponent->BindAction(StickAimAction, ETriggerEvent::Triggered, this, &ATank::StickAim);
 		EnhancedInputComponent->BindAction(MouseAimAction, ETriggerEvent::Triggered, this, &ATank::MouseAim);
 	}
@@ -144,6 +154,30 @@ void ATank::DoAim(float AxisX, float AxisY)
 
 	// Adjust the aim angle relative to the tank's facing direction (this way, up on the stick is always forward for the tank)
 	AimAngle += GetActorRotation().Yaw;
+}
+
+void ATank::DoFire()
+{
+	if (CurrentAmmo > 0)
+	{
+		Fire();
+		CurrentAmmo--;
+
+		UE_LOG(LogTemp, Warning, TEXT("Shot fired! Current Ammo: %d"), CurrentAmmo);
+
+		// Start the reload timer if we have no ammo left
+		if (CurrentAmmo <= 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Reloading..."));
+			
+			GetWorldTimerManager().SetTimer(ReloadTimerHandle, [this]()
+			{
+				CurrentAmmo = MaxAmmo;
+				UE_LOG(LogTemp, Warning, TEXT("Reload complete! Current Ammo: %d"), CurrentAmmo);
+				GetWorldTimerManager().ClearTimer(ReloadTimerHandle);
+			}, ReloadTime, false);
+		}
+	}
 }
 
 void ATank::HandleDestruction()

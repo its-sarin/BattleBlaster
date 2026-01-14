@@ -61,6 +61,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float TurnRate = 45.f;
 
+	UPROPERTY(EditAnywhere, Category="Combat")
+	int32 MaxAmmo = 6;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ReloadTime = 2.f;
+
 	/** Pointer to the player controller assigned to this character */
 	TObjectPtr<APlayerController> PlayerController;
 
@@ -79,8 +85,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void DoAim(float AxisX, float AxisY);
 
+	void DoFire();
+
 	void HandleDestruction();
 	void SetPlayerEnabled(bool bEnabled);
+
+	FTimerHandle ReloadTimerHandle;
 
 protected:
 	/** Aim Yaw Angle in degrees */
@@ -96,4 +106,6 @@ protected:
 	/** Mouse aim input action */
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* MouseAimAction;
+
+	int32 CurrentAmmo;
 };
