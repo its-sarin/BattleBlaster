@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/TextBlock.h"
 #include "PlayerHUD.generated.h"
 
+class UTextBlock;
 class UProgressBar;
 class UHealthComponent;
 
@@ -26,6 +26,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	UProgressBar* HealthBar;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	UTextBlock* AmmoCountTextBlock;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	UProgressBar* ReloadProgressBar;
+	
 	UFUNCTION(BlueprintCallable)
 	void SetTargetHealthComponent(UHealthComponent* NewHealthComponent);
 
@@ -33,4 +39,6 @@ public:
 	void OnHealthChanged(float NewHealth, float MaxHealth);
 
 	void SetTowersRemainingText(int32 TowersRemaining);
+	void SetAmmoCountText(int32 AmmoCount);
+	void SetReloadProgress(float Progress);
 };

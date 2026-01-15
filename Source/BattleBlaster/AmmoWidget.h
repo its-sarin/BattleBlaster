@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "AmmoWidget.generated.h"
 
+class UTextBlock;
+class UProgressBar;
+
 /**
  * 
  */
@@ -14,4 +17,13 @@ class BATTLEBLASTER_API UAmmoWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	UTextBlock* AmmoCountTextBlock;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	UProgressBar* ReloadProgressBar;
+
+	void SetAmmoCountText(int32 AmmoCount);
+	void SetReloadProgress(float Progress);
 };

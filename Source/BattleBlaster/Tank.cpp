@@ -6,7 +6,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "InputMappingContext.h"
-#include <Kismet/KismetMathLibrary.h>
+#include "Kismet/KismetMathLibrary.h"
+#include "BattleBlasterGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "PlayerHUD.h"
 
 ATank::ATank()
 {
@@ -30,8 +33,19 @@ void ATank::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+	
+	AGameModeBase* GameMode = UGameplayStatics::GetGameMode(GetWorld());
+	if (GameMode)
+	{
+		BattleBlasterGameMode = Cast<ABattleBlasterGameMode>(GameMode);
+		PlayerHUDWidget = BattleBlasterGameMode->PlayerHUDWidget;
+	}
 
 	CurrentAmmo = MaxAmmo;
+	if (PlayerHUDWidget)
+	{
+		PlayerHUDWidget->SetAmmoCountText(CurrentAmmo);
+	}
 
 	SetPlayerEnabled(false);
 }
@@ -44,9 +58,12 @@ void ATank::Tick(float DeltaTime)
 	if (ReloadTimerHandle.IsValid())
 	{
 		float ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ReloadTimerHandle);
-		float ReloadProgress = (ElapsedTime / ReloadTime) * 100.f;
-		UE_LOG(LogTemp, Warning, TEXT("Reloading... %.2f%%"), ReloadProgress);
-		// Optionally, you can update a reload progress bar here using ElapsedTime and ReloadTime
+		float ReloadProgress = (ElapsedTime / ReloadTime);
+
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->SetReloadProgress(ReloadProgress);
+		}
 	}
 
 	// get the current rotation
@@ -95,6 +112,7 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATank::DoFire);
 		EnhancedInputComponent->BindAction(StickAimAction, ETriggerEvent::Triggered, this, &ATank::StickAim);
 		EnhancedInputComponent->BindAction(MouseAimAction, ETriggerEvent::Triggered, this, &ATank::MouseAim);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ATank::Reload);
 	}
 }
 
@@ -158,11 +176,18 @@ void ATank::DoAim(float AxisX, float AxisY)
 
 void ATank::DoFire()
 {
+	if (bIsReloading) {return;}
+
 	if (CurrentAmmo > 0)
 	{
 		Fire();
 		CurrentAmmo--;
 
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->SetAmmoCountText(CurrentAmmo);
+		}
+		
 		UE_LOG(LogTemp, Warning, TEXT("Shot fired! Current Ammo: %d"), CurrentAmmo);
 
 		// Start the reload timer if we have no ammo left
@@ -170,14 +195,32 @@ void ATank::DoFire()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Reloading..."));
 			
-			GetWorldTimerManager().SetTimer(ReloadTimerHandle, [this]()
-			{
-				CurrentAmmo = MaxAmmo;
-				UE_LOG(LogTemp, Warning, TEXT("Reload complete! Current Ammo: %d"), CurrentAmmo);
-				GetWorldTimerManager().ClearTimer(ReloadTimerHandle);
-			}, ReloadTime, false);
+			Reload();
 		}
 	}
+}
+
+void ATank::Reload()
+{
+	if (bIsReloading || CurrentAmmo == MaxAmmo)
+	{
+		return;
+	}
+
+	bIsReloading = true;
+
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle, [this]()
+	{
+		CurrentAmmo = MaxAmmo;
+		UE_LOG(LogTemp, Warning, TEXT("Reload complete! Current Ammo: %d"), CurrentAmmo);
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->SetAmmoCountText(CurrentAmmo);
+			PlayerHUDWidget->SetReloadProgress(0.f);
+		}
+		bIsReloading = false;
+		GetWorldTimerManager().ClearTimer(ReloadTimerHandle);
+	}, ReloadTime, false);
 }
 
 void ATank::HandleDestruction()
@@ -196,11 +239,11 @@ void ATank::SetPlayerEnabled(bool bEnabled)
 	{
 		if (bEnabled)
 		{	
-			EnableInput(PlayerController);			
+			EnableInput(PlayerController);
 		}
 		else
 		{
-			DisableInput(PlayerController);			
+			DisableInput(PlayerController);
 		}
 		PlayerController->SetShowMouseCursor(bEnabled);
 	}

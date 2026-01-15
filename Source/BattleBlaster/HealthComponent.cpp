@@ -9,11 +9,10 @@ UHealthComponent::UHealthComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
 }
-
 
 // Called when the game starts
 void UHealthComponent::BeginPlay()
@@ -37,15 +36,6 @@ void UHealthComponent::BeginPlay()
 	}
 }
 
-
-// Called every frame
-void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-
 void UHealthComponent::OnDamageTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
 	if (Damage <= 0.f)
@@ -55,11 +45,9 @@ void UHealthComponent::OnDamageTaken(AActor* DamagedActor, float Damage, const U
 	CurrentHealth -= Damage;
 
 	// If DamagedActor is The Player, update HUD
-	/*ATank* Tank = Cast<ATank>(DamagedActor);*/
 	if (PlayerHUDWidget)
 	{
 		OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
-		UE_LOG(LogTemp, Warning, TEXT("Updating Player HUD Health Bar: %f / %f"), CurrentHealth, MaxHealth);
 	}
 
 	if (CurrentHealth <= 0.f)

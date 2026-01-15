@@ -13,7 +13,6 @@ void ABattleBlasterGameMode::BeginPlay()
 	TArray<AActor*> Towers;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATower::StaticClass(), Towers);
 	TowerCount = Towers.Num();
-	UE_LOG(LogTemp, Warning, TEXT("Tower Count: %d"), TowerCount);
 
 	Tank = Cast<ATank>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	if (!Tank)
@@ -27,7 +26,6 @@ void ABattleBlasterGameMode::BeginPlay()
 		if (Tower && Tank)
 		{
 			Tower->Tank = Tank;
-			UE_LOG(LogTemp, Warning, TEXT("GameMode: Assigned Tank to Tower %s"), *Tower->GetName());
 		}
 	}
 	
@@ -95,7 +93,7 @@ void ABattleBlasterGameMode::ActorDied(AActor* DeadActor)
 
 			TowerCount--;
 
-			PlayerHUDWidget->SetTowersRemainingText(TowerCount);
+			PlayerHUDWidget->SetTowersRemainingText(TowerCount);			
 
 			if (TowerCount <= 0)
 			{				

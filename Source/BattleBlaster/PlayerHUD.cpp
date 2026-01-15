@@ -2,6 +2,7 @@
 
 
 #include "PlayerHUD.h"
+#include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "HealthComponent.h"
 
@@ -40,4 +41,14 @@ void UPlayerHUD::SetTargetHealthComponent(UHealthComponent* NewHealthComponent)
 	{
 		TargetHealthComponent->OnHealthChanged.AddDynamic(this, &UPlayerHUD::OnHealthChanged);
 	}
+}
+
+void UPlayerHUD::SetAmmoCountText(int32 AmmoCount)
+{
+	AmmoCountTextBlock->SetText(FText::AsNumber(AmmoCount));
+}
+
+void UPlayerHUD::SetReloadProgress(float Progress)
+{
+	ReloadProgressBar->SetPercent(Progress);
 }

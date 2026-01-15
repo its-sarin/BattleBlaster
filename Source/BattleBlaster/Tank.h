@@ -13,7 +13,8 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
-
+class ABattleBlasterGameMode;
+class UPlayerHUD;
 
 /**
  * 
@@ -70,6 +71,9 @@ public:
 	/** Pointer to the player controller assigned to this character */
 	TObjectPtr<APlayerController> PlayerController;
 
+	ABattleBlasterGameMode* BattleBlasterGameMode;
+	UPlayerHUD* PlayerHUDWidget;
+
 	bool bIsAlive = true;
 
 	void MoveInput(const FInputActionValue& Value);
@@ -80,6 +84,8 @@ public:
 
 	/** Handles mouse aim */
 	void MouseAim(const FInputActionValue& Value);
+
+	void Reload();
 
 	/** Handles aim inputs from both input actions and touch interface */
 	UFUNCTION(BlueprintCallable, Category = "Input")
@@ -107,5 +113,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* MouseAimAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* ReloadAction;
+
 	int32 CurrentAmmo;
+
+private:
+	bool bIsReloading = false;
 };
